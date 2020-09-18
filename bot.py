@@ -18,6 +18,7 @@ load_dotenv()
 
 if debug == True:
     import configparser
+    import pprint
     config = configparser.ConfigParser()
     config.read('config.ini')
     print(config.sections())
@@ -37,7 +38,7 @@ else:
     creds = env('CLEARDB_DATABASE_URL')
     database = Database(creds)
 
-#un used, keeping to save the create table command
+#unused, keeping to save the create table command
 async def setup_db(creds):
     database = Database(creds)
     query = """CREATE TABLE IF NOT EXISTS `cocktails` (`name` VARCHAR(255), `discription` VARCHAR(255), `image` VARCHAR(255), `ingredients` VARCHAR(255), `instructions` VARCHAR(255), `author` VARCHAR(255));"""
@@ -55,6 +56,9 @@ async def on_ready():
 
 @bot.command()
 async def newdrink(ctx):
+    if not str(ctx.channel.id) == str(CHANNEL):
+        return
+
     channel = ctx.channel
     ingredient = []
 
@@ -149,7 +153,9 @@ async def newdrink(ctx):
 
 @bot.command()
 async def randomdrink(ctx):
-    # await database.connect()
+    if not str(ctx.channel.id) == str(CHANNEL):
+        return
+
     query = "SELECT * FROM cocktails"
     rows = await database.fetch_all(query=query)
     drink = random.choice(rows)
@@ -173,6 +179,5 @@ async def randomdrink(ctx):
     embed.add_field(name="posted By: ", value=author)
 
     await ctx.send(embed=embed)    
-
 
 bot.run(TOKEN)
