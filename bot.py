@@ -12,9 +12,11 @@ load_dotenv()
 # config = configparser.ConfigParser()
 # config.read('config.ini')
 
-TOKEN = environ['TOKEN']
-GUILD = environ['GUILD']
-CHANNEL = environ['CHANNEL']
+env = environ.Env(DEBUG=(bool, False))
+
+TOKEN = env['TOKEN']
+GUILD = env['GUILD']
+CHANNEL = env['CHANNEL']
 
 bot = commands.Bot(command_prefix='#')
 
