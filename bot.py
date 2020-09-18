@@ -34,7 +34,7 @@ else:
     GUILD = env('GUILD')
     CHANNEL = env('CHANNEL')
     bot = commands.Bot(command_prefix='#')
-    creds = env['CLEARDB_DATABASE_URL']
+    creds = env('CLEARDB_DATABASE_URL')
     database = Database(creds)
 
 #un used, keeping to save the create table command
