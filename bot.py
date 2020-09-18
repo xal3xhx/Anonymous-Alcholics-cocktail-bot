@@ -14,7 +14,7 @@ load_dotenv()
 
 env = environ.Env(DEBUG=(bool, False))
 
-TOKEN = env('TOKEN')
+TOKEN = env('BOT_TOKEN')
 GUILD = env('GUILD')
 CHANNEL = env('CHANNEL')
 
