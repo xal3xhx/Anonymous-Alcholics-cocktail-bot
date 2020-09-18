@@ -6,7 +6,10 @@ from dotenv import load_dotenv
 from discord.ext import commands
 from databases import Database
 import ast
+import asyncio
 import asyncpg
+import psycopg2
+import aiomysql
 
 # set to true to read bot info form the config file
 # or false to read from env variables
@@ -14,7 +17,8 @@ debug = False
 
 load_dotenv()
 
-database = Database('sqlite:///drinks.db')
+#local file for debuging
+# database = Database('sqlite:///drinks.db')
 
 if debug == True:
     import configparser
@@ -25,7 +29,8 @@ if debug == True:
     GUILD = config['discord']['GUILD']
     CHANNEL = config['discord']['CHANNEL']
     bot = commands.Bot(command_prefix='*')
-    database = Database(config['discord']['database'], ssl=True)
+    creds = config['discord']['database']
+    database = Database(creds)
 else:
     import environ
     env = environ.Env(DEBUG=(bool, False))  
@@ -33,8 +38,15 @@ else:
     GUILD = env('GUILD')
     CHANNEL = env('CHANNEL')
     bot = commands.Bot(command_prefix='#')
-    database = Database(os.environ['DATABASE_URL'], ssl=True)
+    creds = env['CLEARDB_DATABASE_URL']
+    database = Database(creds)
 
+#un used, keeping to save the create table command
+async def setup_db(creds):
+    database = Database(creds)
+    query = """CREATE TABLE IF NOT EXISTS `cocktails` (`name` VARCHAR(255), `discription` VARCHAR(255), `image` VARCHAR(255), `ingredients` VARCHAR(255), `instructions` VARCHAR(255), `author` VARCHAR(255));"""
+    await database.execute(query=query)
+    
 @bot.event
 async def on_ready():
     await bot.change_presence(activity=discord.Game(name="development"))
@@ -43,13 +55,12 @@ async def on_ready():
             break
     print(f'{bot.user.name} has connected to Discord!')
     print(f'{guild.name}(id: {guild.id})')
+    await database.connect()
 
 @bot.command()
 async def newdrink(ctx):
     channel = ctx.channel
     ingredient = []
-
-    await database.connect()
 
     async def exit_check():
         print(message_response.content)
@@ -142,7 +153,7 @@ async def newdrink(ctx):
 
 @bot.command()
 async def randomdrink(ctx):
-    await database.connect()
+    # await database.connect()
     query = "SELECT * FROM cocktails"
     rows = await database.fetch_all(query=query)
     drink = random.choice(rows)
@@ -167,9 +178,5 @@ async def randomdrink(ctx):
 
     await ctx.send(embed=embed)    
 
-@bot.command()
-async def createdb(ctx):
-    await database.connect()
-    query = """CREATE TABLE cocktails (name STRING, discription STRING, image STRING, ingredients STRING, instructions STRING, author STRING);"""
-    await database.execute(query=query)
+
 bot.run(TOKEN)
