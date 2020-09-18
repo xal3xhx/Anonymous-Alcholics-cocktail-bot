@@ -25,7 +25,7 @@ if debug == True:
     GUILD = config['discord']['GUILD']
     CHANNEL = config['discord']['CHANNEL']
     bot = commands.Bot(command_prefix='*')
-    database = Database('sqlite:///drinks.db')
+    database = Database(config['discord']['database'], ssl=True)
 else:
     import environ
     env = environ.Env(DEBUG=(bool, False))  
@@ -33,7 +33,7 @@ else:
     GUILD = env('GUILD')
     CHANNEL = env('CHANNEL')
     bot = commands.Bot(command_prefix='#')
-    database = Database(os.environ['DATABASE_URL'])
+    database = Database(os.environ['DATABASE_URL'], ssl=True)
 
 @bot.event
 async def on_ready():
@@ -142,6 +142,7 @@ async def newdrink(ctx):
 
 @bot.command()
 async def randomdrink(ctx):
+    await database.connect()
     query = "SELECT * FROM cocktails"
     rows = await database.fetch_all(query=query)
     drink = random.choice(rows)
@@ -168,6 +169,7 @@ async def randomdrink(ctx):
 
 @bot.command()
 async def createdb(ctx):
+    await database.connect()
     query = """CREATE TABLE cocktails (name STRING, discription STRING, image STRING, ingredients STRING, instructions STRING, author STRING);"""
     await database.execute(query=query)
 bot.run(TOKEN)
