@@ -24,6 +24,7 @@ if debug == True:
     GUILD = config['discord']['GUILD']
     CHANNEL = config['discord']['CHANNEL']
     bot = commands.Bot(command_prefix='*')
+    database = Database('sqlite:///drinks.db')
 else:
     import environ
     env = environ.Env(DEBUG=(bool, False))  
@@ -31,6 +32,7 @@ else:
     GUILD = env('GUILD')
     CHANNEL = env('CHANNEL')
     bot = commands.Bot(command_prefix='#')
+    database = os.environ['DATABASE_URL']
 
 @bot.event
 async def on_ready():
