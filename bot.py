@@ -46,7 +46,7 @@ async def setup_db(creds):
     
 @bot.event
 async def on_ready():
-    await bot.change_presence(activity=discord.Game(name="development"))
+    await bot.change_presence(activity=discord.Game(name="Making Drinks"))
     for guild in bot.guilds:
         if guild.name == GUILD:
             break
@@ -92,7 +92,7 @@ async def newdrink(ctx):
     await send2.delete()
     await message_response.delete()
 
-    send = await ctx.send('discription: ')
+    send = await ctx.send('description: ')
     message_response = await bot.wait_for('message', check=check)
     if await exit_check(): return
     description = str(message_response.content)
@@ -129,7 +129,7 @@ async def newdrink(ctx):
         await message_response.delete()
 
 
-    send = await ctx.send('makeing instructions: ')
+    send = await ctx.send('making instructions: ')
     message_response = await bot.wait_for('message', check=check)
     if await exit_check(): return
     instructions = str(message_response.content)
