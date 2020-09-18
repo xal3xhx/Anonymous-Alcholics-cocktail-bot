@@ -32,7 +32,7 @@ else:
     GUILD = env('GUILD')
     CHANNEL = env('CHANNEL')
     bot = commands.Bot(command_prefix='#')
-    database = os.environ['DATABASE_URL']
+    database = Database(os.environ['DATABASE_URL'])
 
 @bot.event
 async def on_ready():
