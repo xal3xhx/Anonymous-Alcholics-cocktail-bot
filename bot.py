@@ -4,16 +4,17 @@ import discord
 import datetime
 from dotenv import load_dotenv
 from discord.ext import commands
-import configparser
+import environ
+# import configparser
 
 load_dotenv()
 
-config = configparser.ConfigParser()
-config.read('config.ini')
+# config = configparser.ConfigParser()
+# config.read('config.ini')
 
-TOKEN = config['discord']['TOKEN']
-GUILD = config['discord']['GUILD']
-CHANNEL = config['discord']['CHANNEL']
+TOKEN = environ['TOKEN']
+GUILD = environ['GUILD']
+CHANNEL = environ['CHANNEL']
 
 bot = commands.Bot(command_prefix='#')
 
