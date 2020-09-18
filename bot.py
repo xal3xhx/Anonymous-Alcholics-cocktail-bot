@@ -11,7 +11,7 @@ from pbwrap import Pastebin
 
 # set to true to read bot info form the config file
 # or false to read from env variables
-debug = True
+debug = False
 
 load_dotenv()
 
