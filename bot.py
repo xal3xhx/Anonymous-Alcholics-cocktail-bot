@@ -165,5 +165,8 @@ async def randomdrink(ctx):
 
     await ctx.send(embed=embed)    
 
-
+@bot.command()
+async def createdb(ctx):
+    query = "CREATE TABLE cocktails(name STRING, discription STRING, image STRING, ingredients STRING, instructions STRING, author STRING);"
+    await database.execute(query=query)
 bot.run(TOKEN)
