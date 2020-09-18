@@ -6,6 +6,7 @@ from discord.ext import commands
 from databases import Database
 import ast
 import asyncio
+import pyimgur
 
 # set to true to read bot info form the config file
 # or false to read from env variables
@@ -21,22 +22,21 @@ if debug == True:
     import pprint
     config = configparser.ConfigParser()
     config.read('config.ini')
-    print(config.sections())
+    bot = commands.Bot(command_prefix='*')
     TOKEN = config['discord']['BOT_TOKEN']
     GUILD = config['discord']['GUILD']
     CHANNEL = config['discord']['CHANNEL']
-    bot = commands.Bot(command_prefix='*')
-    creds = config['discord']['database']
-    database = Database(creds)
+    database = Database(config['discord']['database'])
+    im = pyimgur.Imgur(config['discord']['imgur_token'])
 else:
     import environ
-    env = environ.Env(DEBUG=(bool, False))  
+    env = environ.Env(DEBUG=(bool, False))
+    bot = commands.Bot(command_prefix='#')
     TOKEN = env('BOT_TOKEN')
     GUILD = env('GUILD')
     CHANNEL = env('CHANNEL')
-    bot = commands.Bot(command_prefix='#')
-    creds = env('CLEARDB_DATABASE_URL')
-    database = Database(creds)
+    database = Database(env('CLEARDB_DATABASE_URL'))
+    im = pyimgur.Imgur(env('imgur_token'))
 
 #unused, keeping to save the create table command
 async def setup_db(creds):
@@ -99,11 +99,16 @@ async def newdrink(ctx):
     await send.delete()
     await message_response.delete()
 
-    send = await ctx.send('image url: ')
-    send2 = await ctx.send('imgur is a good place to upload!')
+    send = await ctx.send('image: ')
+    send2 = await ctx.send('you can either send a image or a direct link to one.')
     message_response = await bot.wait_for('message', check=check)
     if await exit_check(): return
-    url = str(message_response.content)
+    if not message_response.content:
+        attachment = message_response.attachments[0]
+        uploaded_image = im.upload_image(url=attachment.url)
+        url = str(uploaded_image.link)
+    else:
+        url = str(message_response.content)
     await send.delete()
     await send2.delete()
     await message_response.delete()
