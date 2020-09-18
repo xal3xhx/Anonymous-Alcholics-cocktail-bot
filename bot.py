@@ -4,6 +4,8 @@ import discord
 import datetime
 from dotenv import load_dotenv
 from discord.ext import commands
+from databases import Database
+import ast
 
 # set to true to read bot info form the config file
 # or false to read from env variables
@@ -11,6 +13,7 @@ debug = False
 
 load_dotenv()
 
+database = Database('sqlite:///drinks.db')
 
 if debug == True:
     import configparser
@@ -31,8 +34,7 @@ else:
 
 @bot.event
 async def on_ready():
-    await bot.change_presence(activity=discord.Game(name="cocktails"))
-    print('My Ready is Body')
+    await bot.change_presence(activity=discord.Game(name="development"))
     for guild in bot.guilds:
         if guild.name == GUILD:
             break
@@ -43,6 +45,8 @@ async def on_ready():
 async def newdrink(ctx):
     channel = ctx.channel
     ingredient = []
+
+    await database.connect()
 
     async def exit_check():
         print(message_response.content)
@@ -113,6 +117,12 @@ async def newdrink(ctx):
     await send.delete()
     await message_response.delete()
 
+    query = "INSERT INTO cocktails(name, discription, image, ingredients, instructions, author) VALUES (:name, :discription, :image, :ingredients, :instructions, :author)"
+    values = [
+        {"name": name, "discription": description, "image": url, "ingredients": str(ingredient), "instructions": instructions, "author": str(ctx.author)}
+    ]
+    await database.execute_many(query=query, values=values)
+
     def list():
         list = ""
         for i in range(ingredients):
@@ -123,11 +133,35 @@ async def newdrink(ctx):
     embed.set_thumbnail(url=url)
     embed.add_field(name="ingredients", value=list())
     embed.add_field(name="instructions", value=instructions)
+    embed.add_field(name="posted By: ", value=ctx.author)
 
     await ctx.send(embed=embed)
 
 @bot.command()
 async def randomdrink(ctx):
-    print("random")
+    query = "SELECT * FROM cocktails"
+    rows = await database.fetch_all(query=query)
+    drink = random.choice(rows)
+    name = drink[0]
+    discription = drink[1]
+    image = drink[2]
+    ingredients = drink[3]
+    instructions = drink[4]
+    author = drink[5]
+
+    def list():
+        list = ""
+        for i in ast.literal_eval(ingredients):
+            list = list + i + "\n"
+        return list
+
+    embed = discord.Embed(title=name, description=discription, color=discord.Color.blue())
+    embed.set_thumbnail(url=image)
+    embed.add_field(name="ingredients", value=list())
+    embed.add_field(name="instructions", value=instructions)
+    embed.add_field(name="posted By: ", value=author)
+
+    await ctx.send(embed=embed)    
+
 
 bot.run(TOKEN)
