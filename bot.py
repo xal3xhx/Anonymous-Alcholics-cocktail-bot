@@ -14,9 +14,9 @@ load_dotenv()
 
 env = environ.Env(DEBUG=(bool, False))
 
-TOKEN = env['TOKEN']
-GUILD = env['GUILD']
-CHANNEL = env['CHANNEL']
+TOKEN = env('TOKEN')
+GUILD = env('GUILD')
+CHANNEL = env('CHANNEL')
 
 bot = commands.Bot(command_prefix='#')
 
