@@ -7,11 +7,10 @@ from databases import Database
 import ast
 import asyncio
 import pyimgur
-from pbwrap import Pastebin
 
 # set to true to read bot info form the config file
 # or false to read from env variables
-debug = True
+debug = False
 
 load_dotenv()
 
@@ -29,7 +28,6 @@ if debug == True:
     CHANNEL = config['discord']['CHANNEL']
     database = Database(config['discord']['database'])
     im = pyimgur.Imgur(config['discord']['imgur_token'])
-    pb = Pastebin(config['discord']['pastebin_key'])
 else:
     import environ
     env = environ.Env(DEBUG=(bool, False))
@@ -38,7 +36,7 @@ else:
     GUILD = env('GUILD')
     CHANNEL = env('CHANNEL')
     database = Database(env('CLEARDB_DATABASE_URL'))
-    pb = Pastebin(env('pastebin_key'))
+    im = pyimgur.Imgur(env('imgur_token'))
 
 #unused, keeping to save the create table command
 async def setup_db(creds):
@@ -134,15 +132,7 @@ async def newdrink(ctx):
     send = await ctx.send('making instructions: ')
     message_response = await bot.wait_for('message', check=check)
     if await exit_check(): return
-    if not message_response.content:
-        attachment = message_response.attachments[0]
-        await attachment.save("instructions.txt")
-        with open('instructions.txt', 'r') as file:
-            text = file.read()
-            paste = pb.create_paste(str(text), api_paste_private=1)
-        instructions = str(paste)
-    else:
-        instructions = str(message_response.content)
+    instructions = str(message_response.content)
     await send.delete()
     await message_response.delete()
 
