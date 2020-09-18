@@ -1,19 +1,15 @@
 import os
 import random
 import discord
-import datetime
 from dotenv import load_dotenv
 from discord.ext import commands
 from databases import Database
 import ast
 import asyncio
-import asyncpg
-import psycopg2
-import aiomysql
 
 # set to true to read bot info form the config file
 # or false to read from env variables
-debug = False
+debug = True
 
 load_dotenv()
 
