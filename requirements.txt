@@ -3,3 +3,4 @@ python-dotenv==0.14.0
 python-environ==0.4.54
 databases==0.3.2
 ipython==7.16.1
+aiosqlite==0.15.0
