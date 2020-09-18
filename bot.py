@@ -195,21 +195,4 @@ async def randomdrink(ctx):
 
     await ctx.send(embed=embed)    
 
-@bot.command()
-async def test(ctx):
-
-    channel = ctx.channel
-
-    def check(m):
-        return m.author == ctx.author and m.channel == channel
-
-    send = await ctx.send('send file.')
-    message_response = await bot.wait_for('message', check=check)
-    attachment = message_response.attachments[0]
-    await attachment.save("instructions.txt")
-    with open('instructions.txt', 'r') as file:
-        text = file.read()
-        paste = pb.create_paste(str(text), api_paste_private=1)
-    print(paste)
-
 bot.run(TOKEN)
