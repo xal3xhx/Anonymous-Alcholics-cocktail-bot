@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from discord.ext import commands
 from databases import Database
 import ast
+import asyncpg
 
 # set to true to read bot info form the config file
 # or false to read from env variables
