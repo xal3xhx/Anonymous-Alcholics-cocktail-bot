@@ -5,3 +5,4 @@ databases==0.3.2
 ipython==7.16.1
 aiomysql==0.0.20
 pyimgur==0.6.0
+pbwrap==1.2.2
