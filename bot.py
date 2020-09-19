@@ -11,7 +11,7 @@ from pbwrap import Pastebin
 
 # set to true to read bot info form the config file
 # or false to read from env variables
-debug = False
+debug = True
 
 load_dotenv()
 
@@ -163,11 +163,13 @@ async def newdrink(ctx):
     await sent.add_reaction("\U0001F44D")
     await sent.add_reaction("\U0001F44E")
 
+    await asyncio.sleep(.5)
+
     message_id = sent.id
 
-    query = "INSERT INTO cocktails(name, discription, image, ingredients, instructions, author, up_vote, downvote, message_id) VALUES (:name, :discription, :image, :ingredients, :instructions, :author, :up_vote, :downvote, messsage_id)"
+    query = "INSERT INTO cocktails(name, discription, image, ingredients, instructions, author, up_vote, downvote, message_id) VALUES (:name, :discription, :image, :ingredients, :instructions, :author, :up_vote, :downvote, :message_id)"
     values = [
-        {"name": name, "discription": description, "image": url, "ingredients": str(ingredient), "instructions": instructions, "author": str(ctx.author), "up_vote": int(0), "downvote": int(0), message_id: message_id}
+        {"name": name, "discription": description, "image": url, "ingredients": str(ingredient), "instructions": instructions, "author": str(ctx.author), "up_vote": int(0), "downvote": int(0), "message_id": str(message_id)}
     ]
     await database.execute_many(query=query, values=values)
 
