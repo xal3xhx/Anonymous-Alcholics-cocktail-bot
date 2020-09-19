@@ -38,6 +38,7 @@ else:
     GUILD = env('GUILD')
     CHANNEL = env('CHANNEL')
     database = Database(env('CLEARDB_DATABASE_URL'))
+    im = pyimgur.Imgur(env('imgur_token'))
     pb = Pastebin(env('pastebin_key'))
 
 #unused, keeping to save the create table command
