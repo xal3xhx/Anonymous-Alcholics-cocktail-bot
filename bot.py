@@ -165,7 +165,9 @@ async def newdrink(ctx):
     embed.add_field(name="instructions", value=instructions)
     embed.add_field(name="posted By: ", value=ctx.author)
 
-    await ctx.send(embed=embed)
+    sent = await ctx.send(embed=embed)
+    await sent.add_reaction("\U0001F44D")
+    await sent.add_reaction("\U0001F44E")
 
 @bot.command()
 async def randomdrink(ctx):
@@ -194,6 +196,155 @@ async def randomdrink(ctx):
     embed.add_field(name="instructions", value=instructions)
     embed.add_field(name="posted By: ", value=author)
 
-    await ctx.send(embed=embed)    
+    sent = await ctx.send(embed=embed)
+    print(sent.id)
+
+@bot.command(pass_context = True)
+async def clear(ctx, number):
+    if not str(ctx.message.author.id) =="102131189187358720":
+        return
+    async for msg in ctx.channel.history(limit=int(number)):
+        if not msg.pinned:
+            await msg.delete()
+
+@bot.event
+async def on_raw_reaction_add(payload):
+    print("reaction add")
+    id = payload.message_id
+
+    async def check(id):
+        query = "SELECT * FROM cocktails"
+        rows = await database.fetch_all(query=query)
+        # print(rows)
+        for row in rows:
+            # print(row)
+            if row[8] is None:
+                continue
+            if int(row[8]) == id:
+                print("MATCH")
+                print(str(payload.emoji))
+                if str(payload.emoji) == "👍":
+                    await add_one_up(row[6], row[8])
+                elif str(payload.emoji) == "👎":
+                    await add_one_down(row[7], row[8])
+
+    async def add_one_up(current, id):
+        if current is None:
+            new = 1
+        else:
+            new = current + 1
+        # query = "INSERT INTO cocktails(up_vote) VALUES (:up_vote)"
+        query = "UPDATE cocktails SET up_vote = (:up_vote) WHERE message_id = (:id)"
+        values = [
+            {"up_vote": new, "id": id}
+        ]
+        await database.execute_many(query=query, values=values)
+
+    async def add_one_down(current, id):
+        if current is None:
+            new = 1
+        else:
+            new = current + 1
+        query = "UPDATE cocktails SET downvote = (:down_vote) WHERE message_id = (:id)"
+        values = [
+            {"down_vote": new, "id": id}
+        ]
+        await database.execute_many(query=query, values=values)
+    
+    await check(id)
+
+@bot.event
+async def on_raw_reaction_remove(payload):
+    print("reaction remove")
+    id = payload.message_id
+
+    async def check(id):
+        query = "SELECT * FROM cocktails"
+        rows = await database.fetch_all(query=query)
+        # print(rows)
+        for row in rows:
+            # print(row)
+            if row[8] is None:
+                continue
+            if int(row[8]) == id:
+                print("MATCH")
+                print(str(payload.emoji))
+                if str(payload.emoji) == "👍":
+                    await remove_one_up(row[6], row[8])
+                elif str(payload.emoji) == "👎":
+                    await remove_one_down(row[7], row[8])
+
+    async def remove_one_up(current, id):
+        if current is None:
+            new = 0
+        elif current <= 0:
+            print("starting value was less then 0. setting to 0")
+            new = 0
+        else:
+            new = current - 1
+        # query = "INSERT INTO cocktails(up_vote) VALUES (:up_vote)"
+        query = "UPDATE cocktails SET up_vote = (:up_vote) WHERE message_id = (:id)"
+        values = [
+            {"up_vote": new, "id": id}
+        ]
+        await database.execute_many(query=query, values=values)
+
+    async def remove_one_down(current, id):
+        if current is None:
+            new = 0
+        elif current <= 0:
+            print("starting value was less then 0. setting to 0")
+            new = 0
+        else:
+            new = current - 1
+        query = "UPDATE cocktails SET downvote = (:down_vote) WHERE message_id = (:id)"
+        values = [
+            {"down_vote": new, "id": id}
+        ]
+        await database.execute_many(query=query, values=values)
+    
+    await check(id)
+
+@bot.command()
+async def rebuild(ctx):
+    if not str(ctx.message.author.id) =="102131189187358720":
+        return
+
+    query = "SELECT * FROM cocktails"
+    rows = await database.fetch_all(query=query)
+    for row in rows:
+        drink = row
+        name = drink[0]
+        discription = drink[1]
+        image = drink[2]
+        ingredients = drink[3]
+        instructions = drink[4]
+        author = drink[5]
+
+        def list():
+            list = ""
+            for i in ast.literal_eval(ingredients):
+                list = list + i + "\n"
+            return list
+
+        embed = discord.Embed(title=name, description=discription, color=discord.Color.blue())
+        embed.set_thumbnail(url=image)
+        embed.add_field(name="ingredients", value=list())
+        embed.add_field(name="instructions", value=instructions)
+        embed.add_field(name="posted By: ", value=author)
+
+        sent = await ctx.send(embed=embed)
+        await sent.add_reaction("\U0001F44D")
+        await sent.add_reaction("\U0001F44E")
+        id = sent.id
+
+        await asyncio.sleep(1)
+
+        query = "UPDATE cocktails SET message_id = (:message_id) WHERE image = (:image)"
+        values = [
+            {"message_id": id, "image": row[2]}
+        ]
+        await database.execute_many(query=query, values=values)
+
 
 bot.run(TOKEN)
