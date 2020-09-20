@@ -55,7 +55,6 @@ async def on_ready():
             break
     print(f'{bot.user.name} has connected to Discord!')
     print(f'{guild.name}(id: {guild.id})')
-    server_id = guild.id
     await database.connect()
 
 @bot.command()
@@ -217,6 +216,8 @@ async def randomdrink(ctx):
 
 @bot.command(pass_context = True)
 async def clear(ctx, number):
+    if not str(ctx.channel.id) == str(CHANNEL):
+        return
     if not str(ctx.message.author.id) =="102131189187358720":
         return
     async for msg in ctx.channel.history(limit=int(number)):
@@ -323,6 +324,8 @@ async def on_raw_reaction_remove(payload):
 
 @bot.command()
 async def rebuild(ctx):
+    if not str(ctx.channel.id) == str(CHANNEL):
+        return
     if not str(ctx.message.author.id) =="102131189187358720":
         return
 
@@ -364,7 +367,9 @@ async def rebuild(ctx):
 
 @bot.command()
 async def top(ctx):
-    embed = discord.Embed(title="The top 3 drink are.", description="Leaderboard", color=discord.Color.red())
+    if not str(ctx.channel.id) == str(CHANNEL):
+        return
+    embed = discord.Embed(title="Leaderboard", description="The top 3 drink are.", color=discord.Color.red())
     embed.set_thumbnail(url="https://i.imgur.com/hKxdqF0.png")
     query = "SELECT * FROM cocktails"
     rows = await database.fetch_all(query=query)
@@ -375,10 +380,6 @@ async def top(ctx):
     for x in range(0,3):
         drink = top[x]
         name = drink[0]
-        discription = drink[1]
-        image = drink[2]
-        ingredients = drink[3]
-        instructions = drink[4]
         author = drink[5]
         upvotes = drink[6]
         message_id = drink[8]
