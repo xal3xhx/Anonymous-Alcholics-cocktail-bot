@@ -318,7 +318,7 @@ async def clear(ctx, number):
         return
     if not str(ctx.message.author.id) == owner_id:
         return
-    async for msg in ctx.channel.history(limit=int(number+1)):
+    async for msg in ctx.channel.history(limit=int(number)+1):
         if not msg.pinned:
             await msg.delete()
 
