@@ -1,17 +1,18 @@
 import os
 import random
+import ast
+import asyncio
+import pyimgur
 import discord
 from dotenv import load_dotenv
 from discord.ext import commands
 from databases import Database
-import ast
-import asyncio
-import pyimgur
 from pbwrap import Pastebin
 
 # set to true to read bot info form the config file
 # or false to read from env variables
 development = False
+owner_id = "102131189187358720"
 
 load_dotenv()
 
@@ -19,7 +20,6 @@ load_dotenv()
 
 if development == True:
     import configparser
-    import pprint
     print("development mode")
     config = configparser.ConfigParser()
     config.read('config.ini')
@@ -46,7 +46,7 @@ async def setup_db(creds):
     database = Database(creds)
     query = """CREATE TABLE IF NOT EXISTS `cocktails` (`name` VARCHAR(255), `discription` VARCHAR(255), `image` VARCHAR(255), `ingredients` VARCHAR(255), `instructions` VARCHAR(255), `author` VARCHAR(255));"""
     await database.execute(query=query)
-    
+
 @bot.event
 async def on_ready():
     await bot.change_presence(activity=discord.Game(name="Making Drinks"))
@@ -214,19 +214,9 @@ async def randomdrink(ctx):
             print(sent.id)
             break
 
-@bot.command(pass_context = True)
-async def clear(ctx, number):
-    if not str(ctx.channel.id) == str(CHANNEL):
-        return
-    if not str(ctx.message.author.id) =="102131189187358720":
-        return
-    async for msg in ctx.channel.history(limit=int(number)):
-        if not msg.pinned:
-            await msg.delete()
-
 @bot.event
 async def on_raw_reaction_add(payload):
-    print("reaction add")
+    
     id = payload.message_id
 
     async def check(id):
@@ -322,11 +312,21 @@ async def on_raw_reaction_remove(payload):
     
     await check(id)
 
+@bot.command(pass_context = True)
+async def clear(ctx, number):
+    if not str(ctx.channel.id) == str(CHANNEL):
+        return
+    if not str(ctx.message.author.id) == owner_id:
+        return
+    async for msg in ctx.channel.history(limit=int(number+1)):
+        if not msg.pinned:
+            await msg.delete()
+
 @bot.command()
 async def rebuild(ctx):
     if not str(ctx.channel.id) == str(CHANNEL):
         return
-    if not str(ctx.message.author.id) =="102131189187358720":
+    if not str(ctx.message.author.id) == owner_id:
         return
 
     query = "SELECT * FROM cocktails"
@@ -389,5 +389,27 @@ async def top(ctx):
         embed.add_field(name=f"#{x+1}", value=f"{name}\n with {upvotes} upvotes\n posted by {author}\n {link}")
 
     await ctx.send(embed=embed)
+
+@bot.command()
+async def admin(ctx):
+    if not str(ctx.channel.id) == str(CHANNEL):
+        return
+    if not str(ctx.message.author.id) == owner_id:
+        return
+    print("admin command")
+
+@bot.command()
+async def whoami(ctx):
+    if not str(ctx.channel.id) == str(CHANNEL):
+        return
+
+    async def roles():
+        roles = ""
+        for x in ctx.message.author.roles:
+            roles = f'{str(roles)} "{str(x)}" '
+        return roles.replace("@", "")
+
+    roles = await roles()
+    await ctx.send(f"you are: {ctx.message.author}\n your id is: {ctx.message.author.id}\n you joined at: {ctx.message.author.joined_at}\n you have the roles: {roles}")
 
 bot.run(TOKEN)
