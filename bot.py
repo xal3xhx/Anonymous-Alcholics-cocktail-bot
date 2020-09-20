@@ -11,16 +11,16 @@ from pbwrap import Pastebin
 
 # set to true to read bot info form the config file
 # or false to read from env variables
-debug = False
+development = True
 
 load_dotenv()
 
-#local file for debuging
-# database = Database('sqlite:///drinks.db')
+#local file for development
 
-if debug == True:
+if development == False:
     import configparser
     import pprint
+    print("development mode")
     config = configparser.ConfigParser()
     config.read('config.ini')
     bot = commands.Bot(command_prefix='*')
@@ -173,37 +173,46 @@ async def newdrink(ctx):
     ]
     await database.execute_many(query=query, values=values)
 
-
-
 @bot.command()
 async def randomdrink(ctx):
     if not str(ctx.channel.id) == str(CHANNEL):
         return
+    while True:
+        try:
+            query = "SELECT * FROM cocktails"
+            rows = await database.fetch_all(query=query)
 
-    query = "SELECT * FROM cocktails"
-    rows = await database.fetch_all(query=query)
-    drink = random.choice(rows)
-    name = drink[0]
-    discription = drink[1]
-    image = drink[2]
-    ingredients = drink[3]
-    instructions = drink[4]
-    author = drink[5]
+            #ok for real dont ever do this, i dont even think its better then the normal random.choice(rows)
+            rng = random.choice(range(0,len(rows)))
+            drink = len(rows) * rng
+            drink = random.choice(range(drink))
+            drink = round(drink / rng)
+            drink = rows[drink]
+        except:
+            continue
+        else:        
+            name = drink[0]
+            discription = drink[1]
+            image = drink[2]
+            ingredients = drink[3]
+            instructions = drink[4]
+            author = drink[5]
 
-    def list():
-        list = ""
-        for i in ast.literal_eval(ingredients):
-            list = list + i + "\n"
-        return list
+            def list():
+                list = ""
+                for i in ast.literal_eval(ingredients):
+                    list = list + i + "\n"
+                return list
 
-    embed = discord.Embed(title=name, description=discription, color=discord.Color.blue())
-    embed.set_thumbnail(url=image)
-    embed.add_field(name="ingredients", value=list())
-    embed.add_field(name="instructions", value=instructions)
-    embed.add_field(name="posted By: ", value=author)
+            embed = discord.Embed(title=name, description=discription, color=discord.Color.blue())
+            embed.set_thumbnail(url=image)
+            embed.add_field(name="ingredients", value=list())
+            embed.add_field(name="instructions", value=instructions)
+            embed.add_field(name="posted By: ", value=author)
 
-    sent = await ctx.send(embed=embed)
-    print(sent.id)
+            sent = await ctx.send(embed=embed)
+            print(sent.id)
+            break
 
 @bot.command(pass_context = True)
 async def clear(ctx, number):
