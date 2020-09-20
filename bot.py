@@ -11,13 +11,13 @@ from pbwrap import Pastebin
 
 # set to true to read bot info form the config file
 # or false to read from env variables
-development = True
+development = False
 
 load_dotenv()
 
 #local file for development
 
-if development == False:
+if development == True:
     import configparser
     import pprint
     print("development mode")
@@ -55,6 +55,7 @@ async def on_ready():
             break
     print(f'{bot.user.name} has connected to Discord!')
     print(f'{guild.name}(id: {guild.id})')
+    server_id = guild.id
     await database.connect()
 
 @bot.command()
@@ -361,5 +362,31 @@ async def rebuild(ctx):
         ]
         await database.execute_many(query=query, values=values)
 
+@bot.command()
+async def top(ctx):
+    embed = discord.Embed(title="The top 3 drink are.", description="Leaderboard", color=discord.Color.red())
+    embed.set_thumbnail(url="https://i.imgur.com/hKxdqF0.png")
+    query = "SELECT * FROM cocktails"
+    rows = await database.fetch_all(query=query)
+    top = sorted(rows, key=lambda x: x.up_vote, reverse=True)
+    for guild in bot.guilds:
+        if guild.name == GUILD:
+            break
+    for x in range(0,3):
+        drink = top[x]
+        name = drink[0]
+        discription = drink[1]
+        image = drink[2]
+        ingredients = drink[3]
+        instructions = drink[4]
+        author = drink[5]
+        upvotes = drink[6]
+        message_id = drink[8]
+        link = f"https://discordapp.com/channels/{guild.id}/{ctx.channel.id}/{message_id}"
+
+
+        embed.add_field(name=f"#{x+1}", value=f"{name}\n with {upvotes} upvotes\n posted by {author}\n {link}")
+
+    await ctx.send(embed=embed)
 
 bot.run(TOKEN)
