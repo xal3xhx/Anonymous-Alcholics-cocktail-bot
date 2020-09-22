@@ -13,10 +13,9 @@ from pbwrap import Pastebin
 # or false to read from env variables
 development = False
 owner_id = "102131189187358720"
+admin_role = '"Administrator"'
 
 load_dotenv()
-
-#local file for development
 
 if development == True:
     import configparser
@@ -41,12 +40,6 @@ else:
     im = pyimgur.Imgur(env('imgur_token'))
     pb = Pastebin(env('pastebin_key'))
 
-#unused, keeping to save the create table command
-async def setup_db(creds):
-    database = Database(creds)
-    query = """CREATE TABLE IF NOT EXISTS `cocktails` (`name` VARCHAR(255), `discription` VARCHAR(255), `image` VARCHAR(255), `ingredients` VARCHAR(255), `instructions` VARCHAR(255), `author` VARCHAR(255));"""
-    await database.execute(query=query)
-
 @bot.event
 async def on_ready():
     await bot.change_presence(activity=discord.Game(name="Making Drinks"))
@@ -57,10 +50,37 @@ async def on_ready():
     print(f'{guild.name}(id: {guild.id})')
     await database.connect()
 
+async def getroles(user):
+    roles = ""
+    for x in user.roles:
+        roles = f'{str(roles)} "{str(x)}" '
+    return roles.replace("@", "")
+
+async def isadmin(user):
+    if admin_role in str(await getroles(user)):
+        print("isadmin returning true")
+        return True
+    else:
+        print("isadmin returning False")
+        return False
+
+async def isowner(id):
+    if (str(id) == owner_id): 
+        print("isowner returning true")
+        return True
+    else:
+        print("isowner returning false")
+        return False
+
+async def checkperms(author):
+    if (await isowner(author.id)) or (await isadmin(author)):
+        return True
+    else:
+        return False
+
 @bot.command()
 async def newdrink(ctx):
-    if not str(ctx.channel.id) == str(CHANNEL):
-        return
+    if not str(ctx.channel.id) == str(CHANNEL): return
 
     channel = ctx.channel
     ingredient = []
@@ -175,8 +195,8 @@ async def newdrink(ctx):
 
 @bot.command()
 async def randomdrink(ctx):
-    if not str(ctx.channel.id) == str(CHANNEL):
-        return
+    if not str(ctx.channel.id) == str(CHANNEL): return
+
     while True:
         try:
             query = "SELECT * FROM cocktails"
@@ -314,20 +334,17 @@ async def on_raw_reaction_remove(payload):
 
 @bot.command(pass_context = True)
 async def clear(ctx, number):
-    if not str(ctx.channel.id) == str(CHANNEL):
-        return
-    if not str(ctx.message.author.id) == owner_id:
-        return
+    if not str(ctx.channel.id) == str(CHANNEL): return
+    if not (await checkperms(ctx.message.author)): return
+
     async for msg in ctx.channel.history(limit=int(number)+1):
         if not msg.pinned:
             await msg.delete()
 
 @bot.command()
 async def rebuild(ctx):
-    if not str(ctx.channel.id) == str(CHANNEL):
-        return
-    if not str(ctx.message.author.id) == owner_id:
-        return
+    if not str(ctx.channel.id) == str(CHANNEL): return
+    if not (await checkperms(ctx.message.author)): return
 
     query = "SELECT * FROM cocktails"
     rows = await database.fetch_all(query=query)
@@ -367,8 +384,8 @@ async def rebuild(ctx):
 
 @bot.command()
 async def top(ctx):
-    if not str(ctx.channel.id) == str(CHANNEL):
-        return
+    if not str(ctx.channel.id) == str(CHANNEL): return
+
     embed = discord.Embed(title="Leaderboard", description="The top 3 drink are.", color=discord.Color.red())
     embed.set_thumbnail(url="https://i.imgur.com/hKxdqF0.png")
     query = "SELECT * FROM cocktails"
@@ -392,24 +409,14 @@ async def top(ctx):
 
 @bot.command()
 async def admin(ctx):
-    if not str(ctx.channel.id) == str(CHANNEL):
-        return
-    if not str(ctx.message.author.id) == owner_id:
-        return
-    print("admin command")
+    if not str(ctx.channel.id) == str(CHANNEL): return
+    if not (await checkperms(ctx.message.author)): return
 
 @bot.command()
 async def whoami(ctx):
-    if not str(ctx.channel.id) == str(CHANNEL):
-        return
+    if not str(ctx.channel.id) == str(CHANNEL): return
 
-    async def roles():
-        roles = ""
-        for x in ctx.message.author.roles:
-            roles = f'{str(roles)} "{str(x)}" '
-        return roles.replace("@", "")
-
-    roles = await roles()
+    roles = await getroles(ctx.message.author)
     await ctx.send(f"you are: {ctx.message.author}\n your id is: {ctx.message.author.id}\n you joined at: {ctx.message.author.joined_at}\n you have the roles: {roles}")
 
 bot.run(TOKEN)
