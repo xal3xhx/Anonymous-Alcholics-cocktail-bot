@@ -57,26 +57,16 @@ async def getroles(user):
     return roles.replace("@", "")
 
 async def isadmin(user):
-    if admin_role in str(await getroles(user)):
-        print("isadmin returning true")
-        return True
-    else:
-        print("isadmin returning False")
-        return False
+    if admin_role in str(await getroles(user)): return True
+    else: return False
 
 async def isowner(id):
-    if (str(id) == owner_id): 
-        print("isowner returning true")
-        return True
-    else:
-        print("isowner returning false")
-        return False
+    if (str(id) == owner_id): return True
+    else: return False
 
 async def checkperms(author):
-    if (await isowner(author.id)) or (await isadmin(author)):
-        return True
-    else:
-        return False
+    if (await isowner(author.id)) or (await isadmin(author)): return True
+    else: return False
 
 @bot.command()
 async def newdrink(ctx):
@@ -407,10 +397,18 @@ async def top(ctx):
 
     await ctx.send(embed=embed)
 
-@bot.command()
-async def admin(ctx):
+@bot.command(pass_context = True)
+async def remove(ctx, message):
     if not str(ctx.channel.id) == str(CHANNEL): return
     if not (await checkperms(ctx.message.author)): return
+    print(f"remove command triggered on: {message}")
+
+    await ctx.message.delete()
+
+    query = "DELETE FROM cocktails WHERE message_id = (:id)"
+    values = [ {"id": str(message)} ]
+    await database.execute_many(query=query, values=values)
+    # delete message from id
 
 @bot.command()
 async def whoami(ctx):
