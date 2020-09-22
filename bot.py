@@ -371,6 +371,18 @@ async def rebuild(ctx):
             {"message_id": id, "image": row[2]}
         ]
         await database.execute_many(query=query, values=values)
+        
+        query = "UPDATE cocktails SET up_vote = (:up_vote) WHERE message_id = (:id)"
+        values = [
+            {"up_vote": 0, "id": id}
+        ]
+        await database.execute_many(query=query, values=values)
+
+        query = "UPDATE cocktails SET downvote = (:downvote) WHERE message_id = (:id)"
+        values = [
+            {"downvote": 0, "id": id}
+        ]
+        await database.execute_many(query=query, values=values)
 
 @bot.command()
 async def top(ctx):
@@ -416,5 +428,25 @@ async def whoami(ctx):
 
     roles = await getroles(ctx.message.author)
     await ctx.send(f"you are: {ctx.message.author}\n your id is: {ctx.message.author.id}\n you joined at: {ctx.message.author.joined_at}\n you have the roles: {roles}")
+
+@bot.command()
+async def commands(ctx):
+    if not str(ctx.channel.id) == str(CHANNEL): return
+
+    embed = discord.Embed(title="Bot Commands", description="The commands for le cocktail bot", color=discord.Color.blue())
+    embed.set_thumbnail(url="https://www.clipartkey.com/mpngs/m/302-3029474_server-icon-download-icons-server-icon-png-white.png")
+    commands = {
+    "#commands": "Lists all the commands currently implimented.",
+    "#newdrink": "Walks you throught how to add a new drink to the database.",
+    "#randomdrink": "displays a random drink.",
+    "#top": "lists the top 3 most voted for drinks.",
+    "#whoami": "Lists basic public info about whoever runs the command (date joined, username, user id, current roles)",
+    "#clear x": "(Admin only) clears x amount of above messages, does not remove pins.",
+    "#rebuild": "(Admin only) will clears likes and re-post all the drinks in the database, make sure the channel is clear before using!",
+    "#remove [message id]": "(Admin only) will completly remove a drink from the database, please use this and do not just remove the message, the drink will still show up in #random drink if not."
+    }
+    for x, y in commands.items():
+        embed.add_field(name=x, value=y)
+    await ctx.send(embed=embed)
 
 bot.run(TOKEN)
