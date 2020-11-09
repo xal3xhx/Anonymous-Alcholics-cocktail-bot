@@ -12,6 +12,7 @@ from pbwrap import Pastebin
 # set to true to read bot info form the config file
 # or false to read from env variables
 
+
 development = False
 owner_id = "102131189187358720"
 admin_role = '"Administrator"'
