@@ -15,6 +15,8 @@ development = False
 owner_id = "102131189187358720"
 admin_role = '"Administrator"'
 
+print("Bot Strting")
+
 load_dotenv()
 
 if development == True:
