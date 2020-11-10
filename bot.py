@@ -33,12 +33,12 @@ else:
     import environ
     env = environ.Env(DEBUG=(bool, False))
     bot = commands.Bot(command_prefix='#')
-    TOKEN = env('BOT_TOKEN')
+    TOKEN = env('BOT_TOKEN_ACTIVITY')
     GUILD = env('GUILD')
     CHANNEL = env('CHANNEL')
-    database = Database(env('CLEARDB_DATABASE_URL'))
-    im = pyimgur.Imgur(env('imgur_token'))
-    pb = Pastebin(env('pastebin_key'))
+    database = Database(env('DB_URL'))
+    im = pyimgur.Imgur(env('IMGUR_TOKEN'))
+    pb = Pastebin(env('PASTEBIN_KEY'))
 
 @bot.event
 async def on_ready():
