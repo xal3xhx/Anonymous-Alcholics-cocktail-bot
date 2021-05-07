@@ -13,7 +13,7 @@ from pbwrap import Pastebin
 # or false to read from env variables
 development = False
 owner_id = "102131189187358720"
-admin_role = '"Administrator"'
+admin_role = '"BARTENDER"'
 
 print("Bot Strting")
 
